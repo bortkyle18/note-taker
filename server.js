@@ -31,10 +31,6 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, './public/index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`API server now on port ${PORT}!`);
-});
-
 
 function createNewNote (body, notesArray) {
     const note = body;
@@ -49,6 +45,21 @@ function createNewNote (body, notesArray) {
 };
 
 
+function deleteNote (id, notesArray) {
+    for (let i = 0; i < notesArray.length; i++) {
+        let note = notesArray[i];
+
+        if (note.id == id) {
+            notesArray.splice(i, 1);
+            fs.writeFileSync(
+                path.join(__dirname, './db/db.json'),
+                JSON.stringify(notesArray, null, 2)
+            );
+        }
+    }
+}
+
+
 app.get('/notes', (req, res) => {
     let results = notes;
     if (req.query) {
@@ -58,13 +69,9 @@ app.get('/notes', (req, res) => {
 });
 
 
-app.get('/notes/:id', (req, res) => {
-    const result = findById(req.params.id, notes);
-    if (result) {
-        res.json(result);
-    } else {
-        res.sendStatus(404);
-    }
+app.delete('/api/notes/:id', (req, res) => {
+        deleteNote(req.params.id, notes);
+        res.json(true);
 });
 
 
@@ -74,4 +81,9 @@ app.post('/api/notes', (req, res) => {
     
     const note = createNewNote(req.body, notes);
     res.json(note);
+});
+
+
+app.listen(PORT, () => {
+    console.log(`API server now on port ${PORT}!`);
 });
